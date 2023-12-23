@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Posting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #imageInput {
+            display: none;
+        }
+        #preview {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+        #imageList {
+            margin-top: 20px;
+        }
+        .stored-image {
+            max-width: 100px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Posting</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="imageInput" id="imageInput" accept="image/*">
+        <button type="button" onclick="openFileInput()">Select Image</button>
+        <div id="preview"></div>
+        <button type="submit">Upload Image</button>
+    </form>
+
+    <div id="imageList">
+        <h2>Stored Images</h2>
+        <div id="storedImages"></div>
+    </div>
+
+    <script>
+        function openFileInput() {
+            document.getElementById('imageInput').click();
+        }
+
+        document.getElementById('imageInput').addEventListener('change', function() {
+            var input = this;
+            var preview = document.getElementById('preview');
+
+            while (preview.firstChild) {
+                preview.removeChild(preview.firstChild);
+            }
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var image = document.createElement('img');
+                    image.src = e.target.result;
+                    image.style.maxWidth = '100%';
+                    preview.appendChild(image);
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        });
+
+        // Function to fetch and display stored images
+        async function fetchStoredImages() {
+            const response = await fetch('/getStoredImages');
+            const images = await response.json();
+
+            const storedImagesDiv = document.getElementById('storedImages');
+            storedImagesDiv.innerHTML = '';
+
+            images.forEach(imageName => {
+                const image = document.createElement('img');
+                image.src = `stored/${imageName}`;
+                image.alt = imageName;
+                image.className = 'stored-image';
+                storedImagesDiv.appendChild(image);
+            });
+        }
+
+        // Fetch stored images on page load
+        fetchStoredImages();
+    </script>
+</body>
+</html>
